@@ -14,7 +14,7 @@
 #include "TwoPunctures.h"
 #include "rhs.h"
 #include "bssn_constraints.h"
-
+#include "Initial_data.h"
 
 template <typename T>
 void applyInitialConditions(const ot::Mesh* mesh, T** zipIn)
@@ -54,22 +54,23 @@ void applyInitialConditions(const ot::Mesh* mesh, T** zipIn)
                         y=pNodes[ownerID].getY()+ jj_y*(len/(eleOrder));
                         z=pNodes[ownerID].getZ()+ kk_z*(len/(eleOrder));
                         assert(len%eleOrder==0);
-                        if (bssn::BSSN_ID_TYPE == 0) {
-                            TwoPunctures((double)x,(double)y,(double)z,var,
-                                         &mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
-                        }
-                        else if (bssn::BSSN_ID_TYPE == 1) {
-                            bssn::punctureData((double)x,(double)y,(double)z,var);
-                        }
-                        else if (bssn::BSSN_ID_TYPE == 2) {
-                            bssn::KerrSchildData((double)x,(double)y,(double)z,var);
-                        }
-                        else if (bssn::BSSN_ID_TYPE == 3) {
-                            bssn::noiseData((double)x,(double)y,(double)z,var);
-                        }
-                        else {
-                            std::cout<<"Unknown ID type"<<std::endl;
-                        }
+                        initial_data::import((double)x, (double)y, (double)z, var);
+                        // if (bssn::BSSN_ID_TYPE == 0) {
+                        //     TPID::TwoPunctures((double)x,(double)y,(double)z,var,
+                        //                  &mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
+                        // }
+                        // else if (bssn::BSSN_ID_TYPE == 1) {
+                        //     bssn::punctureData((double)x,(double)y,(double)z,var);
+                        // }
+                        // else if (bssn::BSSN_ID_TYPE == 2) {
+                        //     bssn::KerrSchildData((double)x,(double)y,(double)z,var);
+                        // }
+                        // else if (bssn::BSSN_ID_TYPE == 3) {
+                        //     bssn::noiseData((double)x,(double)y,(double)z,var);
+                        // }
+                        // else {
+                        //     std::cout<<"Unknown ID type"<<std::endl;
+                        // }
                         for(unsigned int v=0;v<bssn::BSSN_NUM_VARS;v++)
                             zipIn[v][nodeLookUp_CG]=var[v];
 
