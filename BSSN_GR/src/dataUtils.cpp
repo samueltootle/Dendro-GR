@@ -168,7 +168,9 @@ namespace bssn
         bool isOctChange=false;
         bool isOctChange_g =false;
         Point d1, d2, temp;
+        #ifdef BINARY_EVOLUTION
         const double dBH=(bhLoc[0]-bhLoc[1]).abs();
+        #endif
         const unsigned int refLevMin = std::min(bssn::BSSN_BH1_MAX_LEV,bssn::BSSN_BH2_MAX_LEV);
         
         std::vector<unsigned int> refine_flags;
@@ -209,20 +211,19 @@ namespace bssn
 
                     if(!isNearTobh1) 
                         isNearTobh1  = (rd1 <= r_near[0]);
-
-                    if(!isNearTobh2) 
-                        isNearTobh2  = (rd2 <= r_near[1]);
-
                     if(!isNearFarTobh1)
                         isNearFarTobh1 = ((rd1> r_near[0]) && (rd1 <= r_far[0]));
-
+                    #ifdef BINARY_EVOLUTION
+                    if(!isNearTobh2) 
+                        isNearTobh2  = (rd2 <= r_near[1]);
                     if(!isNearFarTobh2)
                         isNearFarTobh2 = ((rd2> r_near[1]) && (rd2 <= r_far[1]));
+                    #endif                   
 
                 }
                 
                 
-
+                #ifdef BINARY_EVOLUTION
                 if(dBH<0.1)
                 { 
                     // BHs have merged. 
@@ -299,6 +300,28 @@ namespace bssn
                     }
 
                 }
+                #else
+                if(isNearTobh1)
+                {
+                    if( ( pNodes[ele].getLevel() + MAXDEAPTH_LEVEL_DIFF +1)< bssn::BSSN_BH1_MAX_LEV )
+                        refine_flags[ele-eleLocalBegin] = OCT_SPLIT;
+                    else if ( ( pNodes[ele].getLevel() + MAXDEAPTH_LEVEL_DIFF +1)> bssn::BSSN_BH1_MAX_LEV )
+                        refine_flags[ele-eleLocalBegin] = OCT_COARSE;
+                    else
+                        refine_flags[ele-eleLocalBegin] = OCT_NO_CHANGE;
+                } else if(isNearFarTobh1)
+                {
+                    if( ( pNodes[ele].getLevel() + MAXDEAPTH_LEVEL_DIFF +1) < (bssn::BSSN_BH1_MAX_LEV - DEPTH_LEV_OFFSET) )
+                        refine_flags[ele-eleLocalBegin] = OCT_SPLIT;
+                    else if ( ( pNodes[ele].getLevel() + MAXDEAPTH_LEVEL_DIFF +1) > (bssn::BSSN_BH1_MAX_LEV - DEPTH_LEV_OFFSET))
+                        refine_flags[ele-eleLocalBegin] = OCT_COARSE;
+                    else
+                        refine_flags[ele-eleLocalBegin] = OCT_NO_CHANGE;
+                }else
+                {
+                    refine_flags[ele-eleLocalBegin] = OCT_COARSE;
+                }
+                #endif
                 
                  
                 // refinement on the GW when the BH gets closer. 
@@ -519,7 +542,7 @@ namespace bssn
         Point d1, d2, temp;
 
         const unsigned int eOrder = pMesh->getElementOrder();
-        const double dBH = (BSSN_BH_LOC[0]-BSSN_BH_LOC[1]).abs();
+        const double dBH = (BSSN_LOC[0]-BSSN_LOC[1]).abs();
         const unsigned int refLevMin = std::min(bssn::BSSN_BH1_MAX_LEV,bssn::BSSN_BH2_MAX_LEV);
 
         // BH considered merged if the distance between punctures are less than the specified value. 
@@ -626,8 +649,8 @@ namespace bssn
                 //std::cout<<"ref flag: "<<(pNodes[ele].getFlag()>>NUM_LEVEL_BITS)<<std::endl;
                 //if(refine_flags[ele-eleLocalBegin]==OCT_SPLIT)
                 pMesh->octCoordToDomainCoord(Point((double)pNodes[ele].minX(),(double)pNodes[ele].minY(),(double)pNodes[ele].minZ()),temp);
-                d1 = temp -BSSN_BH_LOC[0]; 
-                d2 = temp -BSSN_BH_LOC[1];
+                d1 = temp -BSSN_LOC[0]; 
+                d2 = temp -BSSN_LOC[1];
 
                 //@milinda: 11/21/2020 : Don't allow to violate the min depth
                 if( pNodes[ele].getLevel() < bssn::BSSN_MINDEPTH) {
@@ -656,10 +679,10 @@ namespace bssn
                         
                         pMesh->octCoordToDomainCoord(oct_mid,temp);
 
-                        d1 = temp -BSSN_BH_LOC[0]; 
-                        d2 = temp -BSSN_BH_LOC[1];
+                        d1 = temp -BSSN_LOC[0]; 
+                        d2 = temp -BSSN_LOC[1];
 
-                        //std::cout<<"d1: "<<d1 << "BHLOC_0:"<<BSSN_BH_LOC[0]<<std::endl;
+                        //std::cout<<"d1: "<<d1 << "BHLOC_0:"<<BSSN_LOC[0]<<std::endl;
                         //std::cout<<"d2: "<<d2<<std::endl;
 
                         const double rd1 = d1.abs();
@@ -678,8 +701,8 @@ namespace bssn
                         {
                             if( isNearTobh1 || isNearTobh2 )
                             {
-                                // std::cout<<"d1: "<<d1.abs()<<"BHLOC_0:"<<BSSN_BH_LOC[0]<<std::endl;
-                                // std::cout<<"d2: "<<d2.abs()<<"BHLOC_1:"<<BSSN_BH_LOC[1]<<std::endl;
+                                // std::cout<<"d1: "<<d1.abs()<<"BHLOC_0:"<<BSSN_LOC[0]<<std::endl;
+                                // std::cout<<"d2: "<<d2.abs()<<"BHLOC_1:"<<BSSN_LOC[1]<<std::endl;
 
                                 if( ( pNodes[ele].getLevel() + MAXDEAPTH_LEVEL_DIFF +1)< refLevMin )
                                     refine_flags[ele-eleLocalBegin] = OCT_SPLIT;
@@ -701,7 +724,7 @@ namespace bssn
                             {
                                 if(isNearTobh1)
                                 {
-                                    //std::cout<<"d1: "<<d1.abs()<<"BHLOC_0:"<<BSSN_BH_LOC[0]<<" rnear: "<<r_near[0]<<std::endl;
+                                    //std::cout<<"d1: "<<d1.abs()<<"BHLOC_0:"<<BSSN_LOC[0]<<" rnear: "<<r_near[0]<<std::endl;
                                     if( ( pNodes[ele].getLevel() + MAXDEAPTH_LEVEL_DIFF +1)< bssn::BSSN_BH1_MAX_LEV )
                                         refine_flags[ele-eleLocalBegin] = OCT_SPLIT;
                                     else if ( ( pNodes[ele].getLevel() + MAXDEAPTH_LEVEL_DIFF +1)> bssn::BSSN_BH1_MAX_LEV )
@@ -736,7 +759,7 @@ namespace bssn
                                 assert(bssn::BSSN_BH2_MAX_LEV==refLevMin);
                                 if(isNearTobh2)
                                 {
-                                    //std::cout<<"d1: "<<d1.abs()<<"BHLOC_0:"<<BSSN_BH_LOC[0]<<" rnear: "<<r_near[0]<<std::endl;
+                                    //std::cout<<"d1: "<<d1.abs()<<"BHLOC_0:"<<BSSN_LOC[0]<<" rnear: "<<r_near[0]<<std::endl;
                                     if( ( pNodes[ele].getLevel() + MAXDEAPTH_LEVEL_DIFF +1)< bssn::BSSN_BH2_MAX_LEV )
                                         refine_flags[ele-eleLocalBegin] = OCT_SPLIT;
                                     else if ( ( pNodes[ele].getLevel() + MAXDEAPTH_LEVEL_DIFF +1)> bssn::BSSN_BH2_MAX_LEV )
@@ -800,7 +823,7 @@ namespace bssn
         Point d1, d2, temp;
 
         const unsigned int eOrder = pMesh->getElementOrder();
-        const double dBH = (BSSN_BH_LOC[0]-BSSN_BH_LOC[1]).abs();
+        const double dBH = (BSSN_LOC[0]-BSSN_LOC[1]).abs();
         const unsigned int refLevMin = std::min(bssn::BSSN_BH1_MAX_LEV,bssn::BSSN_BH2_MAX_LEV);
 
         // BH considered merged if the distance between punctures are less than the specified value. 
@@ -832,8 +855,8 @@ namespace bssn
                 //std::cout<<"ref flag: "<<(pNodes[ele].getFlag()>>NUM_LEVEL_BITS)<<std::endl;
                 //if(refine_flags[ele-eleLocalBegin]==OCT_SPLIT)
                 pMesh->octCoordToDomainCoord(Point((double)pNodes[ele].minX(),(double)pNodes[ele].minY(),(double)pNodes[ele].minZ()),temp);
-                d1 = temp -BSSN_BH_LOC[0]; 
-                d2 = temp -BSSN_BH_LOC[1];
+                d1 = temp -BSSN_LOC[0]; 
+                d2 = temp -BSSN_LOC[1];
 
                 //@milinda: 11/21/2020 : Don't allow to violate the min depth
                 if( pNodes[ele].getLevel() < bssn::BSSN_MINDEPTH) {
@@ -857,10 +880,10 @@ namespace bssn
                     
                     pMesh->octCoordToDomainCoord(oct_mid,temp);
 
-                    d1 = temp -BSSN_BH_LOC[0]; 
-                    d2 = temp -BSSN_BH_LOC[1];
+                    d1 = temp -BSSN_LOC[0]; 
+                    d2 = temp -BSSN_LOC[1];
 
-                    //std::cout<<"d1: "<<d1 << "BHLOC_0:"<<BSSN_BH_LOC[0]<<std::endl;
+                    //std::cout<<"d1: "<<d1 << "BHLOC_0:"<<BSSN_LOC[0]<<std::endl;
                     //std::cout<<"d2: "<<d2<<std::endl;
 
                     const double rd1 = d1.abs();
