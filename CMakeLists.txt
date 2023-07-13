@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(Dendro-5.0 C CXX Fortran)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 
 find_package(OpenMP REQUIRED)
 find_package(MPI REQUIRED)
