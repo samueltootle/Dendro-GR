@@ -157,10 +157,12 @@ namespace ode
              * */
             void restoreCheckPoint(const char * fNamePrefix,MPI_Comm comm);
 
+            #ifdef BINARY_EVOLUTION
             /**@brief return true if BH distance is less than tol value.
              * @param[in] tol : tolerance value. 
              */
-            bool isBHMerged(double tol) const { return ((bssn::BSSN_BH_LOC[0]-bssn::BSSN_BH_LOC[1]).abs() < tol);} 
+            bool isBHMerged(double tol) const { return ((bssn::BSSN_LOC[0]-bssn::BSSN_LOC[1]).abs() < tol);} 
+            #endif
 
         private:
             /** apply intial conditions*/

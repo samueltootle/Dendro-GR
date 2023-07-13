@@ -179,8 +179,9 @@ namespace bssn
             void lts_smooth(DVec sIn,LTS_SMOOTH_MODE mode);
 
             /**@brief: return true if the BH are merged. */
-            bool is_bh_merged(double tol) const {return ((bssn::BSSN_BH_LOC[0]-bssn::BSSN_BH_LOC[1]).abs() < tol); };
-
+            #ifdef BINARY_EVOLUTION
+            bool is_bh_merged(double tol) const {return ((bssn::BSSN_LOC[0]-bssn::BSSN_LOC[1]).abs() < tol); };
+            #endif
             int grid_transfer(const ot::Mesh* m_new);
     };
 

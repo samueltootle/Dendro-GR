@@ -89,10 +89,16 @@ namespace bssn
                                 const double z = GRIDZ_TO_Z(z_ot);
 
                                 Point grid_pt(x,y,z);
-                                const double d1 = (grid_pt - bssn::BSSN_BH_LOC[0]).abs();
-                                const double d2 = (grid_pt - bssn::BSSN_BH_LOC[1]).abs();
+                                const double d1 = (grid_pt - bssn::BSSN_LOC[0]).abs();
+                                
+                                #ifdef BINARY_EVOLUTION
+                                const double d2 = (grid_pt - bssn::BSSN_LOC[1]).abs();
+                                bool const eval_constraint_radii = (d1 < bssn::BSSN_BH1_CONSTRAINT_R ||  d2 < bssn::BSSN_BH2_CONSTRAINT_R);
+                                #else
+                                bool const eval_constraint_radii = (d1 < bssn::BSSN_BH1_CONSTRAINT_R);
+                                #endif
 
-                                if( (d1 < bssn::BSSN_BH1_CONSTRAINT_R ||  d2 < bssn::BSSN_BH2_CONSTRAINT_R) )
+                                if( eval_constraint_radii )
                                     accumulated[nodeLookUp_CG]=true;
                                 else
                                 {
