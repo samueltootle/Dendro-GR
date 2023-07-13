@@ -17,6 +17,7 @@
 #include "meshUtils.h"
 #include "sdc.h"
 #include "bssnCtx.h"
+#include "Initial_data.h"
 
 
 int main (int argc, char** argv)
@@ -119,17 +120,23 @@ int main (int argc, char** argv)
         if(!rank) std::cout<<"[overlap communication error]: total BSSN_NUM_VARS: "<<bssn::BSSN_NUM_VARS<<" is not divisable by BSSN_ASYNC_COMM_K: "<<bssn::BSSN_ASYNC_COMM_K<<std::endl;
         MPI_Abort(comm,0);
     }
-
+    #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
     if(bssn::BSSN_GW_EXTRACT_FREQ> bssn::BSSN_IO_OUTPUT_FREQ)
     {
       if(!rank) std::cout<<" BSSN_GW_EXTRACT_FREQ  should be less BSSN_IO_OUTPUT_FREQ "<<std::endl;
       MPI_Abort(comm,0);
     }
+    #endif
 
 
     //2. generate the initial grid.
     std::vector<ot::TreeNode> tmpNodes;
-    std::function<void(double,double,double,double*)> f_init=[](double x,double y,double z,double*var){bssn::punctureData(x,y,z,var);};
+    
+    // std::function<void(double,double,double,double*)> f_init=[](double x,double y,double z,double*var){bssn::punctureData(x,y,z,var);};
+    // fuka_id_bh_importer::FUKA_BH_XCTS fuka_bh_data("test.info");
+    // Initial_data id;
+    namespace id = initial_data;
+    std::function<void(double,double,double,double*)> f_init=[](double x,double y,double z,double*var){id::import(x,y,z,var);};
     std::function<double(double,double,double)> f_init_alpha=[](double x,double y,double z){ double var[24]; bssn::punctureData(x,y,z,var); return var[0];};
     //std::function<void(double,double,double,double*)> f_init=[](double x,double y,double z,double*var){bssn::KerrSchildData(x,y,z,var);};
 
@@ -233,6 +240,7 @@ int main (int argc, char** argv)
         const bool isActive = ets->is_active();
         const unsigned int rank_global = ets->get_global_rank();
 
+        #ifdef BINARY_EVOLUTION
         const bool is_merged = bssnCtx->is_bh_merged(0.1);
         if(is_merged)
         {
@@ -241,7 +249,7 @@ int main (int argc, char** argv)
           bssn::BSSN_REMESH_TEST_FREQ=bssn::BSSN_REMESH_TEST_FREQ_AFTER_MERGER;  
           bssn::BSSN_GW_EXTRACT_FREQ  = bssn::BSSN_GW_EXTRACT_FREQ_AFTER_MERGER;
         }
-         
+        #endif         
 
         if( (step % bssn::BSSN_REMESH_TEST_FREQ) == 0 )
         {
@@ -269,6 +277,7 @@ int main (int argc, char** argv)
             }
         }
 
+        #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
         if((step % bssn::BSSN_GW_EXTRACT_FREQ) == 0 )
         {
           if(!rank_global)
@@ -279,6 +288,7 @@ int main (int argc, char** argv)
           bssnCtx->evolve_bh_loc(bssnCtx->get_evolution_vars(),ets->ts_size()*bssn::BSSN_GW_EXTRACT_FREQ);
 
         }
+        #endif
         
         if( (step % bssn::BSSN_CHECKPT_FREQ) == 0 )
           bssnCtx->write_checkpt();
