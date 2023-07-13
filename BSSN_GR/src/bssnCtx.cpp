@@ -11,7 +11,7 @@
  */
 
 #include "bssnCtx.h"
-
+#include "Initial_data.h"
 namespace bssn
 {
     BSSNCtx::BSSNCtx(ot::Mesh* pMesh) : Ctx()
@@ -479,7 +479,7 @@ namespace bssn
         if(bssn::BSSN_ID_TYPE==0)
         {
             TP_MPI_COMM=m_uiMesh->getMPIGlobalCommunicator();
-            TwoPunctures((double)0,(double)0,(double)0,var1,&mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
+            TPID::TwoPunctures((double)0,(double)0,(double)0,var1,&mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
         }
         
         for(unsigned int elem=m_uiMesh->getElementLocalBegin(); elem<m_uiMesh->getElementLocalEnd(); elem++)
@@ -500,31 +500,31 @@ namespace bssn
                             const DendroScalar x=pNodes[ownerID].getX()+ ii_x*(len/(eleOrder));
                             const DendroScalar y=pNodes[ownerID].getY()+ jj_y*(len/(eleOrder));
                             const DendroScalar z=pNodes[ownerID].getZ()+ kk_z*(len/(eleOrder));
-                            
-                            if (bssn::BSSN_ID_TYPE == 0) {
+                            initial_data::import((double)x, (double)y, (double)z, var);
+                            // if (bssn::BSSN_ID_TYPE == 0) {
 
-                                const DendroScalar xx = GRIDX_TO_X(x);
-                                const DendroScalar yy = GRIDY_TO_Y(y);
-                                const DendroScalar zz = GRIDZ_TO_Z(z);
+                            //     const DendroScalar xx = GRIDX_TO_X(x);
+                            //     const DendroScalar yy = GRIDY_TO_Y(y);
+                            //     const DendroScalar zz = GRIDZ_TO_Z(z);
 
-                                TwoPunctures((double)xx,(double)yy,(double)zz,var,
-                                            &mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
-                            }
-                            else if (bssn::BSSN_ID_TYPE == 1) {
-                                bssn::punctureData((double)x,(double)y,(double)z,var);
-                            }
-                            else if (bssn::BSSN_ID_TYPE == 2) {
-                                bssn::KerrSchildData((double)x,(double)y,(double)z,var);
-                            }
-                            else if (bssn::BSSN_ID_TYPE == 3) {
-                                bssn::noiseData((double)x,(double)y,(double)z,var);
-                            }
-                            else if (bssn::BSSN_ID_TYPE == 4) {
-                                bssn::fake_initial_data((double)x,(double)y,(double)z,var);
-                            }
-                            else {
-                                std::cout<<"Unknown ID type"<<std::endl;
-                            }
+                            //     TPID::TwoPunctures((double)xx,(double)yy,(double)zz,var,
+                            //                 &mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
+                            // }
+                            // else if (bssn::BSSN_ID_TYPE == 1) {
+                            //     bssn::punctureData((double)x,(double)y,(double)z,var);
+                            // }
+                            // else if (bssn::BSSN_ID_TYPE == 2) {
+                            //     bssn::KerrSchildData((double)x,(double)y,(double)z,var);
+                            // }
+                            // else if (bssn::BSSN_ID_TYPE == 3) {
+                            //     bssn::noiseData((double)x,(double)y,(double)z,var);
+                            // }
+                            // else if (bssn::BSSN_ID_TYPE == 4) {
+                            //     bssn::fake_initial_data((double)x,(double)y,(double)z,var);
+                            // }
+                            // else {
+                            //     std::cout<<"Unknown ID type"<<std::endl;
+                            // }
                             for(unsigned int v=0; v<bssn::BSSN_NUM_VARS; v++)
                                 zipIn[v][nodeLookUp_CG]=var[v];
                         }
@@ -696,12 +696,14 @@ namespace bssn
         unsigned int cpIndex;
         (m_uiTinfo._m_uiStep %(2*bssn::BSSN_CHECKPT_FREQ)==0) ? cpIndex=0 : cpIndex=1; // to support alternate file writing.
 
-        const bool is_merged = ((bssn::BSSN_BH_LOC[0]-bssn::BSSN_BH_LOC[1]).abs() < 0.1);
+        #ifdef BINARY_EVOLUTION
+        const bool is_merged = ((bssn::BSSN_LOC[0]-bssn::BSSN_LOC[1]).abs() < 0.1);
         if(is_merged && !bssn::BSSN_MERGED_CHKPT_WRITTEN)
         {
             cpIndex=3;
             bssn::BSSN_MERGED_CHKPT_WRITTEN=true;
         }
+        #endif
         
         unsigned int rank=m_uiMesh->getMPIRank();
         unsigned int npes=m_uiMesh->getMPICommSize();
@@ -895,8 +897,8 @@ namespace bssn
         par::Mpi_Bcast(&activeCommSz,1,0,comm);
         
         par::Mpi_Bcast(m_uiBHLoc,2,0,comm);
-        bssn::BSSN_BH_LOC[0]=m_uiBHLoc[0];
-        bssn::BSSN_BH_LOC[1]=m_uiBHLoc[1];
+        bssn::BSSN_LOC[0]=m_uiBHLoc[0];
+        bssn::BSSN_LOC[1]=m_uiBHLoc[1];
 
         if(activeCommSz>npes)
         {
@@ -1234,8 +1236,8 @@ namespace bssn
             m_uiBHLoc[0] = bhLoc[0];
             m_uiBHLoc[1] = bhLoc[1];
 
-            bssn::BSSN_BH_LOC[0]=m_uiBHLoc[0];
-            bssn::BSSN_BH_LOC[1]=m_uiBHLoc[1];
+            bssn::BSSN_LOC[0]=m_uiBHLoc[0];
+            bssn::BSSN_LOC[1]=m_uiBHLoc[1];
 
             // old bh location extractor. 
             #if 0
