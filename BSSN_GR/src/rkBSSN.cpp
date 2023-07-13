@@ -10,7 +10,7 @@
  * */
 
 #include "rkBSSN.h"
-
+#include "Initial_data.h"
 
 
 namespace ode
@@ -228,7 +228,7 @@ void RK_BSSN::applyInitialConditions(DendroScalar** zipIn)
     if(bssn::BSSN_ID_TYPE==0)
     {
         TP_MPI_COMM=m_uiMesh->getMPIGlobalCommunicator();
-        TwoPunctures((double)0,(double)0,(double)0,var,&mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
+        TPID::TwoPunctures((double)0,(double)0,(double)0,var,&mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
     }
 
     for(unsigned int elem=m_uiMesh->getElementLocalBegin(); elem<m_uiMesh->getElementLocalEnd(); elem++)
@@ -247,27 +247,27 @@ void RK_BSSN::applyInitialConditions(DendroScalar** zipIn)
                         x=pNodes[ownerID].getX()+ ii_x*(len/(eleOrder));
                         y=pNodes[ownerID].getY()+ jj_y*(len/(eleOrder));
                         z=pNodes[ownerID].getZ()+ kk_z*(len/(eleOrder));
-                        
-                        if (bssn::BSSN_ID_TYPE == 0) {
-                            x = GRIDX_TO_X(x); y = GRIDY_TO_Y(y); z = GRIDZ_TO_Z(z);
-                            TwoPunctures((double)x,(double)y,(double)z,var,
-                                         &mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
-                        }
-                        else if (bssn::BSSN_ID_TYPE == 1) {
-                            bssn::punctureData((double)x,(double)y,(double)z,var);
-                        }
-                        else if (bssn::BSSN_ID_TYPE == 2) {
-                            bssn::KerrSchildData((double)x,(double)y,(double)z,var);
-                        }
-                        else if (bssn::BSSN_ID_TYPE == 3) {
-                            bssn::noiseData((double)x,(double)y,(double)z,var);
-                        }
-                        else if (bssn::BSSN_ID_TYPE == 4) {
-                            bssn::fake_initial_data((double)x,(double)y,(double)z,var);
-                        }
-                        else {
-                            std::cout<<"Unknown ID type"<<std::endl;
-                        }
+                        initial_data::import((double)x, (double)y, (double)z, var);
+                        // if (bssn::BSSN_ID_TYPE == 0) {
+                        //     x = GRIDX_TO_X(x); y = GRIDY_TO_Y(y); z = GRIDZ_TO_Z(z);
+                        //     TPID::TwoPunctures((double)x,(double)y,(double)z,var,
+                        //                  &mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
+                        // }
+                        // else if (bssn::BSSN_ID_TYPE == 1) {
+                        //     bssn::punctureData((double)x,(double)y,(double)z,var);
+                        // }
+                        // else if (bssn::BSSN_ID_TYPE == 2) {
+                        //     bssn::KerrSchildData((double)x,(double)y,(double)z,var);
+                        // }
+                        // else if (bssn::BSSN_ID_TYPE == 3) {
+                        //     bssn::noiseData((double)x,(double)y,(double)z,var);
+                        // }
+                        // else if (bssn::BSSN_ID_TYPE == 4) {
+                        //     bssn::fake_initial_data((double)x,(double)y,(double)z,var);
+                        // }
+                        // else {
+                        //     std::cout<<"Unknown ID type"<<std::endl;
+                        // }
                         for(unsigned int v=0; v<bssn::BSSN_NUM_VARS; v++)
                             zipIn[v][nodeLookUp_CG]=var[v];
 
@@ -1188,12 +1188,16 @@ void RK_BSSN::rkSolve()
         bssn::BSSN_CURRENT_RK_COORD_TIME = m_uiCurrentTime;
         bssn::BSSN_CURRENT_RK_STEP = m_uiCurrentStep;
 
+        #ifdef BINARY_EVOLUTION
         const bool is_merged = this->isBHMerged(0.1);
         if(is_merged)
         {
             bssn::BSSN_REMESH_TEST_FREQ = bssn::BSSN_REMESH_TEST_FREQ_AFTER_MERGER;
+            #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
             bssn::BSSN_GW_EXTRACT_FREQ  = bssn::BSSN_GW_EXTRACT_FREQ_AFTER_MERGER;
+            #endif
         }
+        #endif
         
         // checkpoint the previous solution value before going to the next step.
         bssn::timer::t_ioCheckPoint.start();
@@ -1439,7 +1443,7 @@ void RK_BSSN::rkSolve()
 
 
 
-        if((m_uiCurrentStep % bssn::BSSN_GW_EXTRACT_FREQ)==0)
+        if((m_uiCurrentStep % bssn::BSSN_IO_OUTPUT_FREQ)==0)
         {
 
         #ifdef RK_SOLVER_OVERLAP_COMM_AND_COMP
@@ -1530,8 +1534,8 @@ void RK_BSSN::rkSolve()
             bssn::computeBHLocations((const ot::Mesh *)m_uiMesh,m_uiBHLoc,bhLoc,m_uiPrevVar,m_uiT_h);
             m_uiBHLoc[0]=bhLoc[0];
             m_uiBHLoc[1]=bhLoc[1];
-            bssn::BSSN_BH_LOC[0]=m_uiBHLoc[0];
-            bssn::BSSN_BH_LOC[1]=m_uiBHLoc[1];
+            bssn::BSSN_LOC[0]=m_uiBHLoc[0];
+            bssn::BSSN_LOC[1]=m_uiBHLoc[1];
         #endif
 
         bssn::timer::t_rkStep.stop();
@@ -1557,12 +1561,14 @@ void RK_BSSN::storeCheckPoint(const char * fNamePrefix)
         unsigned int rank=m_uiMesh->getMPIRank();
         unsigned int npes=m_uiMesh->getMPICommSize();
 
+        #ifdef BINARY_EVOLUTION
         const bool is_merged = this->isBHMerged(0.1);
         if(is_merged && !bssn::BSSN_MERGED_CHKPT_WRITTEN)
         {
             cpIndex=3;
             bssn::BSSN_MERGED_CHKPT_WRITTEN=true;
         }
+        #endif
         
 
         char fName[256];
@@ -1769,8 +1775,8 @@ void RK_BSSN::restoreCheckPoint(const char * fNamePrefix,MPI_Comm comm)
         par::Mpi_Bcast(&activeCommSz,1,0,comm);
         
         par::Mpi_Bcast(m_uiBHLoc,2,0,comm);
-        bssn::BSSN_BH_LOC[0]=m_uiBHLoc[0];
-        bssn::BSSN_BH_LOC[1]=m_uiBHLoc[1];
+        bssn::BSSN_LOC[0]=m_uiBHLoc[0];
+        bssn::BSSN_LOC[1]=m_uiBHLoc[1];
 
         if(activeCommSz>npes)
         {
