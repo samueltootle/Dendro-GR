@@ -544,7 +544,9 @@ namespace bssn
         Point d1, d2, temp;
 
         const unsigned int eOrder = pMesh->getElementOrder();
-        const double dBH = (BSSN_LOC[0]-BSSN_LOC[1]).abs();
+        #ifdef BINARY_EVOLUTION
+        const double dBH=(bhLoc[0]-bhLoc[1]).abs();
+        #endif
         const unsigned int refLevMin = std::min(bssn::BSSN_BH1_MAX_LEV,bssn::BSSN_BH2_MAX_LEV);
 
         // BH considered merged if the distance between punctures are less than the specified value. 
@@ -552,9 +554,10 @@ namespace bssn
         
         if(pMesh->isActive())
         {
+            #ifdef BINARY_EVOLUTION
             if(!pMesh->getMPIRank())
                 printf("BH coord sep: %.8E \n",dBH);//std::cout<<"BH coord sep: "<<dBH<<std::endl;
-
+            #endif
             const RefElement* refEl = pMesh->getReferenceElement();
             wavelet::WaveletEl* wrefEl = new wavelet::WaveletEl((RefElement*)refEl);
 
@@ -662,8 +665,14 @@ namespace bssn
                     refine_flags[ele-eleLocalBegin]=OCT_NO_CHANGE;
                 }
 
-                // don't overide things away from puntures let wavelets handle that. 
-                if(d1.abs()>10 && d2.abs()>10)
+                // don't overide things away from puntures let wavelets handle that.
+                // FIXME this assume Mtotal = 1
+                #ifdef BINARY_EVOLUTION
+                bool const wavelet_threshold =  d1.abs()>10 && d2.abs()>10;
+                #else
+                bool const wavelet_threshold =  d1.abs()>10;
+                #endif
+                if(wavelet_threshold)
                     continue;
                 else
                 {
@@ -691,14 +700,14 @@ namespace bssn
                         const double rd2 = d2.abs();
                         
                         const bool isNearTobh1  = (rd1 <= r_near[0]);
-                        const bool isNearTobh2  = (rd2 <= r_near[1]);
-
                         const bool isMidNearTobh1 = (rd1 > r_near[0] && rd1<=10.0*r_near[0]);
-                        const bool isMidNearTobh2 = (rd2 > r_near[1] && rd1<=10.0*r_near[1]);
-
                         const bool isFarTobh1 = (rd1 > 2.0*r_near[0]);
+
+                        const bool isNearTobh2  = (rd2 <= r_near[1]);
+                        const bool isMidNearTobh2 = (rd2 > r_near[1] && rd1<=10.0*r_near[1]);
                         const bool isFarTobh2 = (rd2 > 2.0*r_near[1]);
 
+                        #ifdef BINARY_EVOLUTION
                         if(dBH< BH_MERGED_SEP_TOL)
                         {
                             if( isNearTobh1 || isNearTobh2 )
@@ -720,6 +729,7 @@ namespace bssn
                             }
                             
                         }else
+                        #endif
                         {
 
                             if(bssn::BSSN_BH1_MAX_LEV == refLevMin)
@@ -743,7 +753,7 @@ namespace bssn
                                         refine_flags[ele-eleLocalBegin] = OCT_COARSE;
                                     
                                 }
-
+                                #ifdef BINARY_EVOLUTION
                                 // changes in bh 1 will get overidden by lev 2
                                 if(isNearTobh2)
                                 {
@@ -755,9 +765,11 @@ namespace bssn
                                         refine_flags[ele-eleLocalBegin] = OCT_NO_CHANGE;
 
                                 }
+                                #endif
 
                             }else
                             {
+                                #ifdef BINARY_EVOLUTION
                                 assert(bssn::BSSN_BH2_MAX_LEV==refLevMin);
                                 if(isNearTobh2)
                                 {
@@ -778,6 +790,7 @@ namespace bssn
                                         refine_flags[ele-eleLocalBegin] = OCT_COARSE;
                                     
                                 }
+                                #endif
 
                                 // changes in bh 2 will get overidden by lev 1 which is the higher level than bh2. 
                                 if(isNearTobh1)
