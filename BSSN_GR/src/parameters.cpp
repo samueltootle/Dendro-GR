@@ -19,16 +19,22 @@ namespace bssn
     unsigned int BSSN_IO_OUTPUT_FREQ=10;
     unsigned int BSSN_TIME_STEP_OUTPUT_FREQ=10;
 
+    #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
     unsigned int BSSN_GW_EXTRACT_FREQ=std::max(1u,BSSN_IO_OUTPUT_FREQ>>1u);
+    #endif
     
     unsigned int BSSN_REMESH_TEST_FREQ=10;
     unsigned int BSSN_REMESH_TEST_FREQ_AFTER_MERGER=10;
+    #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
     unsigned int BSSN_GW_EXTRACT_FREQ_AFTER_MERGER=10;
+    #endif
     double BSSN_IO_OUTPUT_GAP=1.0;
 
     unsigned int BSSN_USE_WAVELET_TOL_FUNCTION=0;
     double BSSN_WAVELET_TOL=0.0001;
+    #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
     double BSSN_GW_REFINE_WTOL=1e-4;
+    #endif
     double BSSN_WAVELET_TOL_MAX=0.001;
     double BSSN_WAVELET_TOL_FUNCTION_R0=10.0;
     double BSSN_WAVELET_TOL_FUNCTION_R1=50.0;
@@ -58,7 +64,11 @@ namespace bssn
     std::string BSSN_PROFILE_FILE_PREFIX="bssn_prof";
 
     double BSSN_BH1_AMR_R=2.0;
+    #ifdef BINARY_EVOLUTION
     double BSSN_BH2_AMR_R=2.0;
+    #else
+    double BSSN_BH2_AMR_R=0.;
+    #endif
 
     double BSSN_BH1_CONSTRAINT_R=5.0;
     double BSSN_BH2_CONSTRAINT_R=5.0;
@@ -67,14 +77,14 @@ namespace bssn
     double BSSN_BH2_MASS;
 
 
-    unsigned int BSSN_BH1_MAX_LEV;
-    unsigned int BSSN_BH2_MAX_LEV;
+    unsigned int BSSN_BH1_MAX_LEV=1;
+    unsigned int BSSN_BH2_MAX_LEV=1;
 
     unsigned int BSSN_INIT_GRID_ITER=10;
 
     BH BH1;
     BH BH2;
-    Point BSSN_BH_LOC[2];
+    Point BSSN_LOC[2];
     unsigned int BSSN_DIM=3;
     unsigned int BSSN_MAXDEPTH=8;
     unsigned int BSSN_MINDEPTH=3;
