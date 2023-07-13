@@ -384,11 +384,13 @@ int main (int argc, char** argv)
         MPI_Abort(comm,0);
     }
 
+    #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
     if(bssn::BSSN_GW_EXTRACT_FREQ> bssn::BSSN_IO_OUTPUT_FREQ)
     {
       if(!rank) std::cout<<" BSSN_GW_EXTRACT_FREQ  should be less BSSN_IO_OUTPUT_FREQ "<<std::endl;
       MPI_Abort(comm,0);
     }
+    #endif
 
 
     //2. generate the initial grid.
