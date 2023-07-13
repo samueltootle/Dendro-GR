@@ -185,7 +185,7 @@ namespace bssn
     extern BH BH2;
 
     /**@brief: evolved locations of the 0-BH1, 1 BH2*/
-    extern Point BSSN_BH_LOC[2];
+    extern Point BSSN_LOC[2];
 
     /**@brief BBH initial data type */
     extern unsigned int BSSN_ID_TYPE;
