@@ -325,6 +325,7 @@ namespace bssn
                 
                  
                 // refinement on the GW when the BH gets closer. 
+                #ifdef BINARY_EVOLUTION
                 #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
                     if(dBH<0.1)
                     {
@@ -342,6 +343,7 @@ namespace bssn
                             }
                         }
                     }
+                #endif
                 #endif
 
             }

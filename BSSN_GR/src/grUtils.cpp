@@ -1749,9 +1749,9 @@ namespace bssn
         } else {
         #else
         } else {
+        #endif
             return bssn::BSSN_WAVELET_TOL;
         }
-        #endif
 
     }
 
