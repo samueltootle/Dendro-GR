@@ -224,6 +224,7 @@ namespace bssn
 
             if(parFile.find("TPID_FILEPREFIX")!=parFile.end())
                 TPID::FILE_PREFIX=parFile["TPID_FILEPREFIX"].get<std::string>();
+            tpf_len=TPID::FILE_PREFIX.size();
             #endif
             if (parFile.find("EXTRACTION_VAR_ID") != parFile.end()) {
                 BHLOC::EXTRACTION_VAR_ID=parFile["EXTRACTION_VAR_ID"];
@@ -236,8 +237,7 @@ namespace bssn
 
             vtu_len=BSSN_VTU_FILE_PREFIX.size();
             chp_len=BSSN_CHKPT_FILE_PREFIX.size();
-            prf_len=BSSN_PROFILE_FILE_PREFIX.size();
-            tpf_len=TPID::FILE_PREFIX.size();
+            prf_len=BSSN_PROFILE_FILE_PREFIX.size();            
 
             #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
             GW::BSSN_GW_NUM_RADAII=parFile["BSSN_GW_NUM_RADAII"];
@@ -427,6 +427,8 @@ namespace bssn
         par::Mpi_Bcast(BSSN_VTU_OUTPUT_EVOL_INDICES,BSSN_NUM_VARS,0,comm);
         par::Mpi_Bcast(BSSN_VTU_OUTPUT_CONST_INDICES,BSSN_CONSTRAINT_NUM_VARS,0,comm);
 
+        #ifdef FUKA_BH_ID
+        #else
         par::Mpi_Bcast(&TPID::target_M_plus,1,0,comm);
         par::Mpi_Bcast(&TPID::target_M_minus,1,0,comm);
         par::Mpi_Bcast(&TPID::par_m_plus,1,0,comm);
@@ -452,7 +454,7 @@ namespace bssn
         par::Mpi_Bcast(&TPID::verbose,1,0,comm);
         par::Mpi_Bcast(&TPID::adm_tol,1,0,comm);
         par::Mpi_Bcast(&TPID::Newton_tol,1,0,comm);
-        
+        #endif
         
         par::Mpi_Bcast(&BHLOC::EXTRACTION_VAR_ID,1,0,comm);
         par::Mpi_Bcast(&BHLOC::EXTRACTION_TOL,1,0,comm);
@@ -596,7 +598,8 @@ namespace bssn
                 sout<<bssn::BSSN_VTU_OUTPUT_CONST_INDICES[i]<<", ";
             sout<<bssn::BSSN_VTU_OUTPUT_CONST_INDICES[bssn::BSSN_NUM_CONST_VARS_VTU_OUTPUT-1]<<"]"<<NRM<<std::endl;
 
-
+            #ifdef FUKA_BH_ID
+            #else
             sout<<YLW<<"\tTPID_TARGET_M_PLUS :"<<TPID::target_M_plus<<NRM<<std::endl;
             sout<<YLW<<"\tTPID_TARGET_M_MINUS :"<<TPID::target_M_minus<<NRM<<std::endl;
             sout<<YLW<<"\tTPID_PAR_B :"<<TPID::par_b<<NRM<<std::endl;
@@ -617,7 +620,7 @@ namespace bssn
             sout<<YLW<<"\tTPID_VERBOSE :"<<TPID::verbose<<NRM<<std::endl;
             sout<<YLW<<"\tTPID_ADM_TOL :"<<TPID::adm_tol<<NRM<<std::endl;
             sout<<YLW<<"\tTPID_NEWTON_TOL :"<<TPID::Newton_tol<<NRM<<std::endl;
-            
+            #endif
             
             sout<<YLW<<"\tEXTRACTION_VAR_ID :"<<BHLOC::EXTRACTION_VAR_ID<<NRM<<std::endl;
             sout<<YLW<<"\tEXTRACTION_TOL :"<<BHLOC::EXTRACTION_TOL<<NRM<<std::endl;
