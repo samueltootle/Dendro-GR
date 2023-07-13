@@ -214,7 +214,7 @@ void bssnrhs(double **unzipVarsRHS, const double **uZipVars,
                         #include "bssneqs_eta_func_standard_gauge.cpp"
                     #else
                         #pragma message("BSSN: using const eta damping")
-                        #include "bssneqs_eta_const_standard_gauge.cpp"
+                        //#include "bssneqs_eta_const_standard_gauge.cpp"
                     #endif
 
                 #endif    
