@@ -60,7 +60,9 @@ namespace bssn
             bssn::BSSN_DIM=parFile["BSSN_DIM"];
             bssn::BSSN_MAXDEPTH=parFile["BSSN_MAXDEPTH"];
             bssn::BH1=BH((double)parFile["BSSN_BH1"]["MASS"],(double)parFile["BSSN_BH1"]["X"],(double)parFile["BSSN_BH1"]["Y"],(double)parFile["BSSN_BH1"]["Z"],(double)parFile["BSSN_BH1"]["V_X"],(double)parFile["BSSN_BH1"]["V_Y"],(double)parFile["BSSN_BH1"]["V_Z"],(double)parFile["BSSN_BH1"]["SPIN"],(double)parFile["BSSN_BH1"]["SPIN_THETA"],(double)parFile["BSSN_BH1"]["SPIN_PHI"]);
-            bssn::BH2=BH((double)parFile["BSSN_BH2"]["MASS"],(double)parFile["BSSN_BH2"]["X"],(double)parFile["BSSN_BH2"]["Y"],(double)parFile["BSSN_BH2"]["Z"],(double)parFile["BSSN_BH2"]["V_X"],(double)parFile["BSSN_BH2"]["V_Y"],(double)parFile["BSSN_BH2"]["V_Z"],(double)parFile["BSSN_BH2"]["SPIN"],(double)parFile["BSSN_BH2"]["SPIN_THETA"],(double)parFile["BSSN_BH2"]["SPIN_PHI"]);
+            if (parFile.find("BSSN_BH2") != parFile.end()) {
+                bssn::BH2=BH((double)parFile["BSSN_BH2"]["MASS"],(double)parFile["BSSN_BH2"]["X"],(double)parFile["BSSN_BH2"]["Y"],(double)parFile["BSSN_BH2"]["Z"],(double)parFile["BSSN_BH2"]["V_X"],(double)parFile["BSSN_BH2"]["V_Y"],(double)parFile["BSSN_BH2"]["V_Z"],(double)parFile["BSSN_BH2"]["SPIN"],(double)parFile["BSSN_BH2"]["SPIN_THETA"],(double)parFile["BSSN_BH2"]["SPIN_PHI"]);
+            }            
             bssn::BSSN_GRID_MIN_X=parFile["BSSN_GRID_MIN_X"];
             bssn::BSSN_GRID_MAX_X=parFile["BSSN_GRID_MAX_X"];
             bssn::BSSN_GRID_MIN_Y=parFile["BSSN_GRID_MIN_Y"];
