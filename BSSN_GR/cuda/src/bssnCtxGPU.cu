@@ -8,6 +8,7 @@
  * 
  */
 #include "bssnCtxGPU.cuh"
+#include "Initial_data.h"
 CONST_MEM DEVICE_REAL device::refel_1d[2*REFEL_CONST_MEM_MAX];
 
 namespace bssn
@@ -317,31 +318,34 @@ namespace bssn
                             const DendroScalar x=pNodes[ownerID].getX()+ ii_x*(len/(eleOrder));
                             const DendroScalar y=pNodes[ownerID].getY()+ jj_y*(len/(eleOrder));
                             const DendroScalar z=pNodes[ownerID].getZ()+ kk_z*(len/(eleOrder));
-                            
-                            if (bssn::BSSN_ID_TYPE == 0) {
+                            initial_data::import(x, y, z, var);
+                            // if (bssn::BSSN_ID_TYPE == 0) {
 
-                                const DendroScalar xx = GRIDX_TO_X(x);
-                                const DendroScalar yy = GRIDY_TO_Y(y);
-                                const DendroScalar zz = GRIDZ_TO_Z(z);
+                            //     const DendroScalar xx = GRIDX_TO_X(x);
+                            //     const DendroScalar yy = GRIDY_TO_Y(y);
+                            //     const DendroScalar zz = GRIDZ_TO_Z(z);
 
-                                TwoPunctures((double)xx,(double)yy,(double)zz,var,
-                                            &mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
-                            }
-                            else if (bssn::BSSN_ID_TYPE == 1) {
-                                bssn::punctureData((double)x,(double)y,(double)z,var);
-                            }
-                            else if (bssn::BSSN_ID_TYPE == 2) {
-                                bssn::KerrSchildData((double)x,(double)y,(double)z,var);
-                            }
-                            else if (bssn::BSSN_ID_TYPE == 3) {
-                                bssn::noiseData((double)x,(double)y,(double)z,var);
-                            }
-                            else if (bssn::BSSN_ID_TYPE == 4) {
-                                bssn::fake_initial_data((double)x,(double)y,(double)z,var);
-                            }
-                            else {
-                                std::cout<<"Unknown ID type"<<std::endl;
-                            }
+                            //     TwoPunctures((double)xx,(double)yy,(double)zz,var,
+                            //                 &mp, &mm, &mp_adm, &mm_adm, &E, &J1, &J2, &J3);
+                            // }
+                            // else if (bssn::BSSN_ID_TYPE == 1) {
+                            //     bssn::punctureData((double)x,(double)y,(double)z,var);
+                            // }
+                            // else if (bssn::BSSN_ID_TYPE == 2) {
+                            //     bssn::KerrSchildData((double)x,(double)y,(double)z,var);
+                            // }
+                            // else if (bssn::BSSN_ID_TYPE == 3) {
+                            //     bssn::noiseData((double)x,(double)y,(double)z,var);
+                            // }
+                            // else if (bssn::BSSN_ID_TYPE == 4) {
+                            //     bssn::fake_initial_data((double)x,(double)y,(double)z,var);
+                            // }
+                            // else if (bssn::BSSN_ID_TYPE == 5) {
+                                
+                            // }
+                            // else {
+                            //     std::cout<<"Unknown ID type"<<std::endl;
+                            // }
                             for(unsigned int v=0; v<bssn::BSSN_NUM_VARS; v++)
                                 zipIn[v][nodeLookUp_CG]=var[v];
                         }
