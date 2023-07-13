@@ -10,7 +10,7 @@
 #include <gsl/gsl_complex_math.h>
 #include "TPUtilities.h"
 #include "TwoPunctures.h"
-
+namespace TPID {
 /*-----------------------------------------------------------*/
 void
 AB_To_XR (int nvar, CCTK_REAL A, CCTK_REAL B, CCTK_REAL *X, CCTK_REAL *R,
@@ -149,5 +149,5 @@ rx3_To_xyz (int nvar, CCTK_REAL x, CCTK_REAL r, CCTK_REAL phi,
       - sin_2phi * r_inv2 * (U_3 - r * U_r3);
   }
 }
-
+}
 /*-----------------------------------------------------------*/

@@ -9,7 +9,7 @@
 #include <gsl/gsl_linalg.h>
 #include "TPUtilities.h"
 #include "TwoPunctures.h"
-
+namespace TPID {
 static int bicgstab (int const nvar, int const n1, int const n2, int const n3,
        derivs v, derivs dv, int const output, int const itmax,
        CCTK_REAL const tol, CCTK_REAL *  const normres);
@@ -613,5 +613,5 @@ Newton (int const nvar, int const n1, int const n2, int const n3,
   free_derivs (&dv, ntotal);
   free_derivs (&u, ntotal);
 }
-
+}
 /* -------------------------------------------------------------------*/

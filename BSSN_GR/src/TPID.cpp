@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     TP_SOLVE_VALID=0;
     if(TP_SOLVE_VALID==0)
     {
-        TPStore(&massp, &massm, &massp_adm, &massm_adm,&E, &J1, &J2, &J3,TPID::FILE_PREFIX.c_str());
+        TPID::TPStore(&massp, &massm, &massp_adm, &massm_adm,&E, &J1, &J2, &J3,TPID::FILE_PREFIX.c_str());
         TP_SOLVE_VALID=1;
     }               
     double t2 = MPI_Wtime();

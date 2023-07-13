@@ -9,7 +9,7 @@
 #include "parameters.h"
 #include "grUtils.h"
 #include "TwoPunctures.h"
-
+namespace TPID {
 using namespace bssn;
 
 inline double EXTEND(double M, double r) {
@@ -647,3 +647,4 @@ void TPRestore(CCTK_REAL*& F, derivs& u, derivs& v, derivs& cf_v, const char* fp
 }
 
 
+}

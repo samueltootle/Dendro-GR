@@ -9,7 +9,7 @@
 #include <time.h>
 #include "TPUtilities.h"
 #include "TwoPunctures.h"
-
+namespace TPID {
 #define FAC sin(al)*sin(be)*sin(al)*sin(be)*sin(al)*sin(be)
 /*#define FAC sin(al)*sin(be)*sin(al)*sin(be)*/
 /*#define FAC 1*/
@@ -971,4 +971,5 @@ void SpecCoef(int n1, int n2, int n3, int ivar, CCTK_REAL *v, CCTK_REAL *cf)
 	      free_d3tensor(values3,0,n1,0,n2,0,n3);
 	      free_d3tensor(values4,0,n1,0,n2,0,n3);
 
+}
 }

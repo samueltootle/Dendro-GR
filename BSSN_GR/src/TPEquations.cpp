@@ -7,7 +7,7 @@
 #include <ctype.h>
 #include "TPUtilities.h"
 #include "TwoPunctures.h"
-
+namespace TPID {
 /* U.d0[ivar]   = U[ivar];  (ivar = 0..nvar-1) */
 /* U.d1[ivar]   = U[ivar]_x;  */
 /* U.d2[ivar]   = U[ivar]_y;  */
@@ -183,5 +183,5 @@ LinEquations (CCTK_REAL A, CCTK_REAL B, CCTK_REAL X, CCTK_REAL R,
   values[0] = dU.d11[0] + dU.d22[0] + dU.d33[0]
     - 0.875 * BY_KKofxyz (x, y, z) / psi8 * dU.d0[0];
 }
-
+}
 /*-----------------------------------------------------------*/

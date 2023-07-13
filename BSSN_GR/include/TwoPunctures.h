@@ -22,8 +22,8 @@
 
 #define MT_STATIC_CONFORMAL 0
 #define MT_STANDARD 1
-
 #include "TPUtilities.h"
+namespace TPID {
 
 typedef struct DERIVS
 {
@@ -87,7 +87,7 @@ void TPStore(double *mp, double *mm, double *mp_adm, double *mm_adm, double *E, 
 /**@brief restore the tp solve from file. */
 void TPRestore(CCTK_REAL*& F, derivs& u, derivs& v, derivs& cf_v, const char* fprefix,bool mpi_bcast=true);
 
-
+}
 /* 
  27: -1.325691774825335e-03
  37: -1.325691778944117e-03
