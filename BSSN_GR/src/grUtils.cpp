@@ -137,12 +137,14 @@ namespace bssn
             if(parFile.find("BSSN_VTU_Z_SLICE_ONLY") != parFile.end())
                 bssn::BSSN_VTU_Z_SLICE_ONLY=parFile["BSSN_VTU_Z_SLICE_ONLY"];
 
+            #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
             if (parFile.find("BSSN_GW_EXTRACT_FREQ") != parFile.end()) {
                 bssn::BSSN_GW_EXTRACT_FREQ=parFile["BSSN_GW_EXTRACT_FREQ"];
             }else
             {
                 bssn::BSSN_GW_EXTRACT_FREQ=std::max(1u,bssn::BSSN_IO_OUTPUT_FREQ>>1u);
             }
+            #endif
 
             if(parFile.find("BSSN_BH1_AMR_R")!=parFile.end())
                 bssn::BSSN_BH1_AMR_R = parFile["BSSN_BH1_AMR_R"];
@@ -163,8 +165,10 @@ namespace bssn
             if(parFile.find("BSSN_INIT_GRID_ITER")!=parFile.end())
                 bssn::BSSN_INIT_GRID_ITER=parFile["BSSN_INIT_GRID_ITER"];
 
+            #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
             if(parFile.find("BSSN_GW_REFINE_WTOL")!=parFile.end())
                 bssn::BSSN_GW_REFINE_WTOL=parFile["BSSN_GW_REFINE_WTOL"];
+            #endif
 
             if(parFile.find("BSSN_MINDEPTH")!=parFile.end())
                 bssn::BSSN_MINDEPTH =parFile["BSSN_MINDEPTH"];
@@ -176,6 +180,8 @@ namespace bssn
                 bssn::BSSN_BH2_CONSTRAINT_R =parFile["BSSN_BH2_CONSTRAINT_R"];
             
 
+           #ifdef FUKA_BH_ID
+           #else
            /* Parameters for TPID */
             TPID::target_M_plus=parFile["TPID_TARGET_M_PLUS"];
             TPID::target_M_minus=parFile["TPID_TARGET_M_MINUS"];
@@ -218,7 +224,7 @@ namespace bssn
 
             if(parFile.find("TPID_FILEPREFIX")!=parFile.end())
                 TPID::FILE_PREFIX=parFile["TPID_FILEPREFIX"].get<std::string>();
-            
+            #endif
             if (parFile.find("EXTRACTION_VAR_ID") != parFile.end()) {
                 BHLOC::EXTRACTION_VAR_ID=parFile["EXTRACTION_VAR_ID"];
             }
@@ -233,7 +239,7 @@ namespace bssn
             prf_len=BSSN_PROFILE_FILE_PREFIX.size();
             tpf_len=TPID::FILE_PREFIX.size();
 
-
+            #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
             GW::BSSN_GW_NUM_RADAII=parFile["BSSN_GW_NUM_RADAII"];
             GW::BSSN_GW_NUM_LMODES=parFile["BSSN_GW_NUM_LMODES"];
 
@@ -242,6 +248,7 @@ namespace bssn
 
             for(unsigned int i=0;i<GW::BSSN_GW_NUM_LMODES;i++)
                 GW::BSSN_GW_L_MODES[i]=parFile["BSSN_GW_L_MODES"][i];
+            #endif
 
 
             if(parFile.find("BSSN_EH_COARSEN_VAL")!= parFile.end())
@@ -277,7 +284,10 @@ namespace bssn
         par::Mpi_Bcast(&BSSN_DENDRO_AMR_FAC,1,0,comm);
         par::Mpi_Bcast(&BSSN_ASYNC_COMM_K,1,0,comm);
         par::Mpi_Bcast((int*)&BSSN_REFINEMENT_MODE,1,0,comm);
+        #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
         par::Mpi_Bcast(&BSSN_GW_EXTRACT_FREQ,1,0,comm);
+        par::Mpi_Bcast(&BSSN_GW_REFINE_WTOL,1,0,comm);
+        #endif
         par::Mpi_Bcast(&BSSN_BH1_AMR_R,1,0,comm);
         par::Mpi_Bcast(&BSSN_BH2_AMR_R,1,0,comm);
 
@@ -287,7 +297,7 @@ namespace bssn
         par::Mpi_Bcast(&BSSN_BH1_MAX_LEV,1,0,comm);
         par::Mpi_Bcast(&BSSN_BH2_MAX_LEV,1,0,comm);
         par::Mpi_Bcast(&bssn::BSSN_INIT_GRID_ITER,1,0,comm);
-        par::Mpi_Bcast(&BSSN_GW_REFINE_WTOL,1,0,comm);
+        
 
         char vtu_name[vtu_len+1];
         char chp_name[chp_len+1];
@@ -459,8 +469,8 @@ namespace bssn
         par::Mpi_Bcast(&bssn::BSSN_EH_REFINE_VAL,1,0,comm);
         par::Mpi_Bcast(&bssn::BSSN_EH_COARSEN_VAL,1,0,comm);
 
-        bssn::BSSN_BH_LOC[0]=Point(BH1.getBHCoordX(),BH1.getBHCoordY(),BH1.getBHCoordZ());
-        bssn::BSSN_BH_LOC[1]=Point(BH2.getBHCoordX(),BH2.getBHCoordY(),BH2.getBHCoordZ());
+        bssn::BSSN_LOC[0]=Point(BH1.getBHCoordX(),BH1.getBHCoordY(),BH1.getBHCoordZ());
+        bssn::BSSN_LOC[1]=Point(BH2.getBHCoordX(),BH2.getBHCoordY(),BH2.getBHCoordZ());
         bssn::BSSN_BH1_MASS=BH1.getBHMass();
         bssn::BSSN_BH2_MASS=BH2.getBHMass();
 
@@ -484,7 +494,9 @@ namespace bssn
             sout<<YLW<<"\tBSSN_PADDING_WIDTH :"<<bssn::BSSN_PADDING_WIDTH<<NRM<<std::endl;
             sout<<YLW<<"\tBSSN_CFL_FACTOR :"<<bssn::BSSN_CFL_FACTOR<<NRM<<std::endl;
             sout<<YLW<<"\tBSSN_IO_OUTPUT_FREQ :"<<bssn::BSSN_IO_OUTPUT_FREQ<<NRM<<std::endl;
+            #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
             sout<<YLW<<"\tBSSN_GW_EXTRACT_FREQ :"<<bssn::BSSN_GW_EXTRACT_FREQ<<NRM<<std::endl;
+            #endif
             sout<<YLW<<"\tBSSN_REMESH_TEST_FREQ :"<<bssn::BSSN_REMESH_TEST_FREQ<<NRM<<std::endl;
             sout<<YLW<<"\tBSSN_CHECKPT_FREQ :"<<bssn::BSSN_CHECKPT_FREQ<<NRM<<std::endl;
             sout<<YLW<<"\tBSSN_RESTORE_SOLVER :"<<bssn::BSSN_RESTORE_SOLVER<<NRM<<std::endl;
@@ -499,7 +511,9 @@ namespace bssn
             sout<<YLW<<"\tBSSN_DENDRO_AMR_FAC :"<<bssn::BSSN_DENDRO_AMR_FAC<<NRM<<std::endl;
             sout<<YLW<<"\tBSSN_USE_WAVELET_TOL_FUNCTION :"<<bssn::BSSN_USE_WAVELET_TOL_FUNCTION<<NRM<<std::endl;
             sout<<YLW<<"\tBSSN_WAVELET_TOL :"<<bssn::BSSN_WAVELET_TOL<<NRM<<std::endl;
+            #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
             sout<<YLW<<"\tBSSN_GW_REFINE_WTOL:"<<bssn::BSSN_GW_REFINE_WTOL<<NRM<<std::endl;
+            #endif
             sout<<YLW<<"\tBSSN_WAVELET_TOL_MAX:"<<bssn::BSSN_WAVELET_TOL_MAX<<NRM<<std::endl;
             sout<<YLW<<"\t:BSSN_WAVELET_TOL_FUNCTION_R0: "<<bssn::BSSN_WAVELET_TOL_FUNCTION_R0<<NRM<<std::endl;
             sout<<YLW<<"\t:BSSN_WAVELET_TOL_FUNCTION_R1: "<<bssn::BSSN_WAVELET_TOL_FUNCTION_R1<<NRM<<std::endl;
@@ -608,7 +622,7 @@ namespace bssn
             sout<<YLW<<"\tEXTRACTION_VAR_ID :"<<BHLOC::EXTRACTION_VAR_ID<<NRM<<std::endl;
             sout<<YLW<<"\tEXTRACTION_TOL :"<<BHLOC::EXTRACTION_TOL<<NRM<<std::endl;
 
-
+            #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
             sout<<YLW<<"\tBSSN_GW_NUM_RADAII: "<<GW::BSSN_GW_NUM_RADAII<<NRM<<std::endl;
             sout<<YLW<<"\tBSSN_GW_NUM_LMODES: "<<GW::BSSN_GW_NUM_LMODES<<NRM<<std::endl;
 
@@ -621,6 +635,7 @@ namespace bssn
             for(unsigned int i=0;i<GW::BSSN_GW_NUM_LMODES;i++)
                 sout<<" ,"<<GW::BSSN_GW_L_MODES[i];
             sout<<"}"<<NRM<<std::endl;
+            #endif
 
         }
         
@@ -1434,14 +1449,14 @@ namespace bssn
         
             const double R0  =  bssn::BSSN_BH1_AMR_R;
             const double R1  =  bssn::BSSN_BH2_AMR_R;    
-            const double dbh = (bssn::BSSN_BH_LOC[0]-bssn::BSSN_BH_LOC[1]).abs();
+            const double dbh = (bssn::BSSN_LOC[0]-bssn::BSSN_LOC[1]).abs();
 
             // R_Max is defined based on the initial separation. 
             const double R_MAX = (bssn::BH1.getBHCoord()-bssn::BH2.getBHCoord()).abs() + R0 + R1;
             
             Point grid_p(x,y,z);
-            const double dbh0 = (grid_p-bssn::BSSN_BH_LOC[0]).abs();
-            const double dbh1 = (grid_p-bssn::BSSN_BH_LOC[1]).abs();
+            const double dbh0 = (grid_p-bssn::BSSN_LOC[0]).abs();
+            const double dbh1 = (grid_p-bssn::BSSN_LOC[1]).abs();
 
 
 
@@ -1470,8 +1485,8 @@ namespace bssn
 
                             const Point grid_pp(xx,yy,zz);
 
-                            const double dd0 = (grid_pp-bssn::BSSN_BH_LOC[0]).abs();
-                            const double dd1 = (grid_pp-bssn::BSSN_BH_LOC[1]).abs();
+                            const double dd0 = (grid_pp-bssn::BSSN_LOC[0]).abs();
+                            const double dd1 = (grid_pp-bssn::BSSN_LOC[1]).abs();
 
                             //std::cout<<"x : "<<x<<" y: "<<y<<" z: "<<z<<" dd0: "<<dd0<<" dd1: "<<dd1<<" hx: "<<hx[0]<<std::endl;
 
@@ -1507,8 +1522,8 @@ namespace bssn
 
                             const Point grid_pp(xx,yy,zz);
 
-                            const double dd0 = (grid_pp-bssn::BSSN_BH_LOC[0]).abs();
-                            const double dd1 = (grid_pp-bssn::BSSN_BH_LOC[1]).abs();
+                            const double dd0 = (grid_pp-bssn::BSSN_LOC[0]).abs();
+                            const double dd1 = (grid_pp-bssn::BSSN_LOC[1]).abs();
 
                             //std::cout<<"x : "<<x<<" y: "<<y<<" z: "<<z<<" dd0: "<<dd0<<" dd1: "<<dd1<<" hx: "<<hx[0]<<std::endl;
 
@@ -1543,8 +1558,8 @@ namespace bssn
 
                         const Point grid_pp(xx,yy,zz);
 
-                        const double dd0 = (grid_pp-bssn::BSSN_BH_LOC[0]).abs();
-                        const double dd1 = (grid_pp-bssn::BSSN_BH_LOC[1]).abs();
+                        const double dd0 = (grid_pp-bssn::BSSN_LOC[0]).abs();
+                        const double dd1 = (grid_pp-bssn::BSSN_LOC[1]).abs();
 
                         //std::cout<<"x : "<<x<<" y: "<<y<<" z: "<<z<<" dd0: "<<dd0<<" dd1: "<<dd1<<" hx: "<<hx[0]<<std::endl;
 
@@ -1570,11 +1585,11 @@ namespace bssn
         }else if (bssn::BSSN_USE_WAVELET_TOL_FUNCTION == 2) {
             
             const double r  = sqrt(x*x + y*y + z*z);
-            const double dbh = (bssn::BSSN_BH_LOC[0]-bssn::BSSN_BH_LOC[1]).abs();
+            const double dbh = (bssn::BSSN_LOC[0]-bssn::BSSN_LOC[1]).abs();
             
             Point grid_p(x,y,z);
-            const double dbh0 = (grid_p-bssn::BSSN_BH_LOC[0]).abs();
-            const double dbh1 = (grid_p-bssn::BSSN_BH_LOC[1]).abs();
+            const double dbh0 = (grid_p-bssn::BSSN_LOC[0]).abs();
+            const double dbh1 = (grid_p-bssn::BSSN_LOC[1]).abs();
             const double dr=sqrt(x*x + y*y + z*z);
 
             #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
@@ -1607,21 +1622,25 @@ namespace bssn
         }else if (bssn::BSSN_USE_WAVELET_TOL_FUNCTION == 3) {
             
             const double r  = sqrt(x*x + y*y + z*z);
-            const double dbh = (bssn::BSSN_BH_LOC[0]-bssn::BSSN_BH_LOC[1]).abs();
+            const double dbh = (bssn::BSSN_LOC[0]-bssn::BSSN_LOC[1]).abs();
             Point grid_p(x,y,z);
-            const double dbh0 = (grid_p-bssn::BSSN_BH_LOC[0]).abs();
-            const double dbh1 = (grid_p-bssn::BSSN_BH_LOC[1]).abs();
+            const double dbh0 = (grid_p-bssn::BSSN_LOC[0]).abs();
+            const double dbh1 = (grid_p-bssn::BSSN_LOC[1]).abs();
             
             
             const double GW_R_SAFETY_FAC = 10.0;
             const double T_CURRENT = bssn::BSSN_CURRENT_RK_COORD_TIME;
             const double TIME_OFFSET_FAC  = 5.0;
-
+            
+            #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
+            const double GW_TOL = bssn::BSSN_GW_REFINE_WTOL;
+            const double W_RR = std::min(GW_TOL,bssn::BSSN_WAVELET_TOL_MAX);
+            #else
+            const double W_RR = bssn::BSSN_WAVELET_TOL_MAX;
+            #endif
             if (T_CURRENT > bssn::BSSN_WAVELET_TOL_FUNCTION_R1 + TIME_OFFSET_FAC )
             {
                 const double RR = std::min( T_CURRENT - TIME_OFFSET_FAC , GW::BSSN_GW_RADAII[GW::BSSN_GW_NUM_RADAII-1] + 10.0);
-                const double GW_TOL = bssn::BSSN_GW_REFINE_WTOL;
-                const double W_RR = std::min(GW_TOL,bssn::BSSN_WAVELET_TOL_MAX);
                 const double R0 = bssn::BSSN_WAVELET_TOL_FUNCTION_R0;
                 const double WTOL_EXP =10.0;
                 //const double R1 = bssn::BSSN_WAVELET_TOL_FUNCTION_R1;
@@ -1635,9 +1654,8 @@ namespace bssn
             {
                 const double R0 = bssn::BSSN_WAVELET_TOL_FUNCTION_R0;
                 const double R1 = bssn::BSSN_WAVELET_TOL_FUNCTION_R1;
-                const double GW_TOL = bssn::BSSN_GW_REFINE_WTOL;
+
                 const double WTOL_EXP =10.0;
-                const double W_RR = std::min(GW_TOL,bssn::BSSN_WAVELET_TOL_MAX);
                 const double WTOL_EXP_FAC =(R1-R0)/std::log10(W_RR/bssn::BSSN_WAVELET_TOL);
                 
                 if(r < R0)
@@ -1652,21 +1670,24 @@ namespace bssn
         } else if (bssn::BSSN_USE_WAVELET_TOL_FUNCTION == 4) {
             
             const double r  = sqrt(x*x + y*y + z*z);
-            const double dbh = (bssn::BSSN_BH_LOC[0]-bssn::BSSN_BH_LOC[1]).abs();
+            const double dbh = (bssn::BSSN_LOC[0]-bssn::BSSN_LOC[1]).abs();
             Point grid_p(x,y,z);
-            const double dbh0 = (grid_p-bssn::BSSN_BH_LOC[0]).abs();
-            const double dbh1 = (grid_p-bssn::BSSN_BH_LOC[1]).abs();
+            const double dbh0 = (grid_p-bssn::BSSN_LOC[0]).abs();
+            const double dbh1 = (grid_p-bssn::BSSN_LOC[1]).abs();
             
             
             const double GW_R_SAFETY_FAC = 10.0;
             const double T_CURRENT = bssn::BSSN_CURRENT_RK_COORD_TIME;
             const double TIME_OFFSET_FAC  = 20.0;
-
+            #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
+            const double GW_TOL = bssn::BSSN_GW_REFINE_WTOL;
+            const double W_RR = std::min(GW_TOL,bssn::BSSN_WAVELET_TOL_MAX);
+            #else
+            const double W_RR = bssn::BSSN_WAVELET_TOL_MAX;
+            #endif
             if (T_CURRENT > bssn::BSSN_WAVELET_TOL_FUNCTION_R1 + TIME_OFFSET_FAC )
             {
                 const double RR = std::min( T_CURRENT - TIME_OFFSET_FAC , GW::BSSN_GW_RADAII[GW::BSSN_GW_NUM_RADAII-1] + 10.0);
-                const double GW_TOL = bssn::BSSN_GW_REFINE_WTOL;
-                const double W_RR = std::min(GW_TOL,bssn::BSSN_WAVELET_TOL_MAX);
                 const double R0 = bssn::BSSN_WAVELET_TOL_FUNCTION_R0;
                 const double WTOL_EXP =10.0;
                 //const double R1 = bssn::BSSN_WAVELET_TOL_FUNCTION_R1;
@@ -1682,9 +1703,7 @@ namespace bssn
                 const double R02 = 3.0*bssn::BSSN_BH2_MASS;
                 const double R11 = 4.0*R01;
                 const double R12 = 4.0*R02;
-                const double GW_TOL = bssn::BSSN_GW_REFINE_WTOL;
                 const double WTOL_EXP =10.0;
-                const double W_RR = std::min(GW_TOL,bssn::BSSN_WAVELET_TOL_MAX);
                 const double W1=(R11-R01)/std::log10(W_RR/bssn::BSSN_WAVELET_TOL);
                 const double W2=(R12-R02)/std::log10(W_RR/bssn::BSSN_WAVELET_TOL);
                 
@@ -1697,11 +1716,11 @@ namespace bssn
                     return std::min(bssn::BSSN_WAVELET_TOL_MAX, minbheps);
                 }
             }
-
+        #ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES    
         } else if (bssn::BSSN_USE_WAVELET_TOL_FUNCTION == 5) {
             Point grid_p(x,y,z);
-            const double d1 = (grid_p - bssn::BSSN_BH_LOC[0]).abs();
-            const double d2 = (grid_p - bssn::BSSN_BH_LOC[1]).abs();
+            const double d1 = (grid_p - bssn::BSSN_LOC[0]).abs();
+            const double d2 = (grid_p - bssn::BSSN_LOC[1]).abs();
 	        const double m1 = bssn::BSSN_BH1_MASS;
 	        const double m2 = bssn::BSSN_BH2_MASS;
             const double t0 = bssn::BSSN_CURRENT_RK_COORD_TIME;
@@ -1723,8 +1742,11 @@ namespace bssn
 	        return std::min(e1, e2);
 
         } else {
+        #else
+        } else {
             return bssn::BSSN_WAVELET_TOL;
         }
+        #endif
 
     }
 
@@ -3033,7 +3055,7 @@ namespace bssn
 }
 
 
-
+#ifdef BSSN_EXTRACT_GRAVITATIONAL_WAVES
 namespace GW
 {
     void psi4ShpereDump(const ot::Mesh* mesh, DendroScalar ** cVar,unsigned int timestep,double time, double dtheta, double dphi)
@@ -3133,3 +3155,4 @@ namespace GW
 
 
 }
+#endif
